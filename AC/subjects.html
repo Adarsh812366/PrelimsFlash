@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Subject</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f4f4f4;
+            padding: 20px;
+        }
+        .subjects {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-width: 400px;
+            margin: auto;
+            justify-content: center;
+        }
+        button {
+            padding: 15px;
+            font-size: 16px;
+            background: #3498db;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 150px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .highlight {
+            background-color: #2ecc71 !important; /* Green highlight for last visited */
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Select a Subject to View Flashcards</h2>
+    
+    <div class="subjects">
+        <button onclick="goToSubject('polity')">Polity</button>
+        <button onclick="goToSubject('geography')">Geography</button>
+        <button onclick="goToSubject('science')">Science</button>
+        <button onclick="goToSubject('environment')">Environment</button>
+        <button onclick="goToSubject('current')">Current Affairs</button>
+        <button onclick="goToSubject('history')">History</button>
+        <button onclick="goToSubject('economy')">Economy</button>
+        <button onclick="goToSubject('ir')">International Relations</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Highlight the last visited subject
+            const lastVisited = localStorage.getItem("lastVisitedSubject");
+            if (lastVisited) {
+                document.querySelectorAll(".subjects button").forEach(btn => {
+                    if (btn.textContent.toLowerCase() === lastVisited.toLowerCase()) {
+                        btn.classList.add("highlight"); // Add green highlight class
+                    }
+                });
+            }
+        });
+
+        function goToSubject(subject) {
+            let flashcards = JSON.parse(localStorage.getItem(subject)) || [];
+            
+            if (flashcards.length === 0) {
+                alert("No flashcards available for " + subject.toUpperCase() + ". Add some first!");
+                return;
+            }
+
+            localStorage.setItem("lastVisitedSubject", subject); // Store last visited
+            window.location.href = `display.html?subject=${subject}`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcard Display</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 20px;
+            text-align: center;
+        }
+        .flashcard-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 600px;
+            margin: auto;
+        }
+        .flashcard {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .flashcard-content {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        button {
+            padding: 8px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            background-color: #3498db;
+            color: white;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .add-question-btn {
+            margin-top: 10px;
+            background-color: #2ecc71;
+        }
+        .add-question-btn:hover {
+            background-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="subject-title"></h1>
+    <div class="flashcard-container" id="flashcard-container"></div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const subject = urlParams.get('subject');
+        document.getElementById('subject-title').innerText = `Flashcards for: ${subject.toUpperCase()}`;
+
+        let flashcards = JSON.parse(localStorage.getItem(subject)) || [];
+        let clickCounts = JSON.parse(localStorage.getItem(`${subject}-clicks`)) || new Array(flashcards.length).fill(0); // Load or initialize clicks
+
+        const container = document.getElementById("flashcard-container");
+
+        function loadFlashcards() {
+            container.innerHTML = "";
+            flashcards.forEach((card, index) => {
+                let flashcardDiv = document.createElement("div");
+                flashcardDiv.className = "flashcard";
+                flashcardDiv.setAttribute("data-index", index);
+                
+                // Attach click event directly to the flashcard, ignoring buttons
+                flashcardDiv.addEventListener("click", (event) => handleFlashcardClick(index, flashcardDiv, event));
+
+                // Set color if it has been clicked 4+ times
+                if (clickCounts[index] >= 4) {
+                    flashcardDiv.style.backgroundColor = "yellow";
+                    flashcardDiv.style.color = "black";
+                }
+
+                flashcardDiv.innerHTML = `
+                    <div class="flashcard-content">
+                        <div>
+                            <strong>${card.question}</strong><br>
+                            <span>${card.answer}</span>
+                        </div>
+                        <div class="button-group">
+                            <button onclick="event.stopPropagation(); editFlashcard(${index})">Edit</button>
+                            <button onclick="event.stopPropagation(); deleteFlashcard(${index})">Delete</button>
+                        </div>
+                    </div>
+                    <button class="add-question-btn" onclick="event.stopPropagation(); addFlashcardAt(${index})">➕ Add Here</button>
+                `;
+                container.appendChild(flashcardDiv);
+            });
+        }
+
+        function handleFlashcardClick(index, flashcardDiv, event) {
+            if (event.target.tagName === "BUTTON") return; // Ignore clicks on buttons
+            
+            clickCounts[index] = (clickCounts[index] || 0) + 1;
+
+            if (clickCounts[index] >= 4) {
+                flashcardDiv.style.backgroundColor = "yellow";
+                flashcardDiv.style.color = "black";
+            }
+
+            // Save click counts to Local Storage
+            localStorage.setItem(`${subject}-clicks`, JSON.stringify(clickCounts));
+        }
+
+        function deleteFlashcard(index) {
+            flashcards.splice(index, 1);
+            clickCounts.splice(index, 1); // Remove click count as well
+            localStorage.setItem(subject, JSON.stringify(flashcards));
+            localStorage.setItem(`${subject}-clicks`, JSON.stringify(clickCounts));
+            loadFlashcards();
+        }
+
+        function editFlashcard(index) {
+            let newQuestion = prompt("Edit Question:", flashcards[index].question);
+            let newAnswer = prompt("Edit Answer:", flashcards[index].answer);
+            if (newQuestion && newAnswer) {
+                flashcards[index] = { question: newQuestion, answer: newAnswer };
+                localStorage.setItem(subject, JSON.stringify(flashcards));
+                loadFlashcards();
+            }
+        }
+
+        function addFlashcardAt(index) {
+            let newQuestion = prompt("Enter new question:");
+            let newAnswer = prompt("Enter new answer:");
+            if (newQuestion && newAnswer) {
+                flashcards.splice(index + 1, 0, { question: newQuestion, answer: newAnswer });
+                clickCounts.splice(index + 1, 0, 0); // Add new entry in click count tracking
+                localStorage.setItem(subject, JSON.stringify(flashcards));
+                localStorage.setItem(`${subject}-clicks`, JSON.stringify(clickCounts));
+                loadFlashcards();
+            }
+        }
+
+        loadFlashcards();
+    </script>
+</body>
+</html>

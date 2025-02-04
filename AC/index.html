@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcard App</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        .control-panel {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            background: #2ecc71;
+            border: none;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #27ae60;
+        }
+
+        .add-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        select, input {
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            width: 100%;
+            max-width: 350px;
+            background: white;
+            color: black;
+        }
+
+        .learn-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #flashcard-added-msg {
+            color: white;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Flashcard Learning App</h1>
+
+    <div class="control-panel">
+        <button onclick="showAddBox()">Add Flashcard</button>
+        <button onclick="displayAllQuestions()">View Flashcards</button>
+        <button onclick="clearAllData()">Clear Data</button>
+    </div>
+    
+    <div id="add-question-container" class="hidden add-container">
+        <select id="category-select">
+            <option value="polity">Polity</option>
+            <option value="geography">Geography</option>
+            <option value="science">Science</option>
+            <option value="environment">Environment</option>
+            <option value="current">Current Affairs</option>
+            <option value="history">History</option>
+            <option value="economy">Economy</option>
+            <option value="ir">International Relations</option>
+        </select>
+        <input type="text" id="new-question" placeholder="Enter question">
+        <input type="text" id="new-answer" placeholder="Enter answer">
+        <button onclick="addNewQuestion()">Add Flashcard</button>
+        <p id="flashcard-added-msg">✅ Flashcard Added!</p>
+    </div>
+
+    <div class="learn-container">
+        <select id="learn-subject">
+            <option value="polity">Polity</option>
+            <option value="geography">Geography</option>
+            <option value="science">Science</option>
+            <option value="environment">Environment</option>
+            <option value="current">Current Affairs</option>
+            <option value="history">History</option>
+            <option value="economy">Economy</option>
+            <option value="ir">International Relations</option>
+        </select>
+        <button onclick="startLearning()">Start Learning</button>
+    </div>
+
+    <script>
+        // Load last selected subject from localStorage
+        document.addEventListener("DOMContentLoaded", function() {
+            const lastSelected = localStorage.getItem("lastSelectedSubject");
+            if (lastSelected) {
+                document.getElementById("category-select").value = lastSelected;
+                document.getElementById("learn-subject").value = lastSelected;
+            }
+        });
+
+        function showAddBox() {
+            document.getElementById("add-question-container").classList.toggle("hidden");
+        }
+
+        function addNewQuestion() {
+            const category = document.getElementById("category-select").value;
+            const question = document.getElementById("new-question").value.trim();
+            const answer = document.getElementById("new-answer").value.trim();
+
+            if (question && answer) {
+                let flashcards = JSON.parse(localStorage.getItem(category)) || [];
+                flashcards.push({ question, answer });
+                localStorage.setItem(category, JSON.stringify(flashcards));
+                localStorage.setItem("lastSelectedSubject", category); // Save last selected
+
+                document.getElementById("new-question").value = "";
+                document.getElementById("new-answer").value = "";
+                
+                // Show success message
+                let msg = document.getElementById("flashcard-added-msg");
+                msg.style.display = "block";
+                setTimeout(() => msg.style.display = "none", 2000);
+            }
+        }
+
+        function displayAllQuestions() {
+            if (confirm("Are you sure you want to view flashcards? Unsaved changes will be lost.")) {
+                window.location.href = "subjects.html";
+            }
+        }
+
+        function clearAllData() {
+            if (confirm("Are you sure you want to delete all flashcards? This cannot be undone.")) {
+                ["polity", "geography", "science", "environment", "current", "history", "economy", "ir"]
+                    .forEach(category => localStorage.removeItem(category));
+                localStorage.removeItem("lastSelectedSubject"); // Clear last selected subject
+                alert("All flashcards deleted!");
+                location.reload(); // Refresh page to reflect changes
+            }
+        }
+
+        function startLearning() {
+            const subject = document.getElementById("learn-subject").value;
+            window.location.href = `learn.html?subject=${subject}`;
+        }
+
+        // ✅ Press "Enter" in Answer Box to Add Flashcard Automatically
+        document.getElementById("new-answer").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevent accidental form submission
+                addNewQuestion();
+            }
+        });
+
+    </script>
+</body>
+</html>
